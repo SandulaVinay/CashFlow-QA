@@ -8,18 +8,10 @@ from .simulator import financing_terms, simulate
 
 
 def _wait_actions(invoices: list[Invoice]) -> list[ActionDecision]:
-    return [
-        ActionDecision(invoice_id=invoice.invoice_id, action="WAIT")
-        for invoice in invoices
-    ]
+    return [ActionDecision(invoice_id=i.invoice_id, action="WAIT") for i in invoices]
 
 
-def _expected_gap(
-    invoices: list[Invoice],
-    obligations: list[Obligation],
-    scenario: Scenario,
-) -> float:
-    """Estimate required cash at the worst point under expected wait timing."""
+def _expected_gap(invoices: list[Invoice], obligations: list[Obligation], scenario: Scenario) -> float:
     daily_collections: dict[int, float] = {}
     daily_obligations: dict[int, float] = {}
 
@@ -34,12 +26,10 @@ def _expected_gap(
 
     cash = scenario.opening_cash
     min_cash = cash
-
     for day in range(scenario.horizon_days + 1):
         cash += daily_collections.get(day, 0.0)
         cash -= daily_obligations.get(day, 0.0)
         min_cash = min(min_cash, cash)
-
     return max(0.0, scenario.minimum_cash_buffer - min_cash)
 
 
@@ -51,13 +41,11 @@ def _finance_ranked(
 ) -> list[ActionDecision]:
     gap = _expected_gap(invoices, obligations, scenario)
     actions = _wait_actions(invoices)
-
     if gap <= 0:
         return actions
 
     covered = 0.0
-    action_by_id = {a.invoice_id: a for a in actions}
-
+    action_by_id = {action.invoice_id: action for action in actions}
     for invoice in ranked:
         if not invoice.eligible_for_treds:
             continue
@@ -70,52 +58,37 @@ def _finance_ranked(
         covered += financed_amount
         if covered >= gap:
             break
-
     return [action_by_id[invoice.invoice_id] for invoice in invoices]
 
 
-def largest_first(
-    invoices: list[Invoice],
-    obligations: list[Obligation],
-    scenario: Scenario,
-) -> list[ActionDecision]:
-    ranked = sorted(invoices, key=lambda x: x.amount, reverse=True)
-    return _finance_ranked(invoices, obligations, scenario, ranked)
+def largest_first(invoices, obligations, scenario):
+    return _finance_ranked(
+        invoices, obligations, scenario,
+        sorted(invoices, key=lambda x: x.amount, reverse=True),
+    )
 
 
-def earliest_due_first(
-    invoices: list[Invoice],
-    obligations: list[Obligation],
-    scenario: Scenario,
-) -> list[ActionDecision]:
-    ranked = sorted(invoices, key=lambda x: x.due_date)
-    return _finance_ranked(invoices, obligations, scenario, ranked)
+def earliest_due_first(invoices, obligations, scenario):
+    return _finance_ranked(
+        invoices, obligations, scenario,
+        sorted(invoices, key=lambda x: x.due_date),
+    )
 
 
-def highest_delay_risk_first(
-    invoices: list[Invoice],
-    obligations: list[Obligation],
-    scenario: Scenario,
-) -> list[ActionDecision]:
-    ranked = sorted(invoices, key=payment_delay_risk, reverse=True)
-    return _finance_ranked(invoices, obligations, scenario, ranked)
+def highest_delay_risk_first(invoices, obligations, scenario):
+    return _finance_ranked(
+        invoices, obligations, scenario,
+        sorted(invoices, key=payment_delay_risk, reverse=True),
+    )
 
 
-def cash_threshold(
-    invoices: list[Invoice],
-    obligations: list[Obligation],
-    scenario: Scenario,
-) -> list[ActionDecision]:
-    gap = _expected_gap(invoices, obligations, scenario)
-    if gap <= 0:
+def cash_threshold(invoices, obligations, scenario):
+    if _expected_gap(invoices, obligations, scenario) <= 0:
         return _wait_actions(invoices)
     return largest_first(invoices, obligations, scenario)
 
 
-def _subset_actions(
-    invoices: list[Invoice],
-    selected_ids: set[str],
-) -> list[ActionDecision]:
+def _subset_actions(invoices: list[Invoice], selected_ids: set[str]) -> list[ActionDecision]:
     return [
         ActionDecision(
             invoice_id=invoice.invoice_id,
@@ -132,40 +105,42 @@ def liquidity_cost_optimizer(
     scenario: Scenario,
     max_exact_invoices: int = 14,
 ) -> list[ActionDecision]:
-    """Find a low-cost TReDS subset that removes expected cash shortfall.
-
-    For <= max_exact_invoices eligible invoices, enumerate subsets exactly.
-    For larger portfolios, fall back to cost-effectiveness greedy selection.
-    """
-    eligible = [i for i in invoices if i.eligible_for_treds]
+    """Select a TReDS subset using an expected scenario, not hindsight."""
+    eligible = [invoice for invoice in invoices if invoice.eligible_for_treds]
     if not eligible:
         return _wait_actions(invoices)
 
-    def score(actions: list[ActionDecision]) -> tuple[int, float]:
+    expected_payment_days = {
+        invoice.invoice_id: expected_payment_day(invoice, scenario)
+        for invoice in invoices
+    }
+
+    def score(actions: list[ActionDecision]) -> tuple[int, float, int]:
         result = simulate(
             invoices,
             obligations,
             scenario,
             actions,
             policy_name="optimizer_candidate",
+            payment_days=expected_payment_days,
         )
-        shortfall = result.metrics.cash_shortfall_days
-        cost = result.metrics.financing_cost
-        return shortfall, cost
+        return (
+            result.metrics.cash_shortfall_days,
+            result.metrics.financing_cost,
+            result.metrics.financed_invoice_count,
+        )
 
     if len(eligible) <= max_exact_invoices:
         best_actions = _wait_actions(invoices)
         best_score = score(best_actions)
-        for r in range(1, len(eligible) + 1):
-            for subset in combinations(eligible, r):
-                candidate_ids = {invoice.invoice_id for invoice in subset}
-                candidate_actions = _subset_actions(invoices, candidate_ids)
-                candidate_score = score(candidate_actions)
+        for size in range(1, len(eligible) + 1):
+            for subset in combinations(eligible, size):
+                candidate = _subset_actions(
+                    invoices, {invoice.invoice_id for invoice in subset}
+                )
+                candidate_score = score(candidate)
                 if candidate_score < best_score:
-                    best_actions = candidate_actions
-                    best_score = candidate_score
-                    if best_score[0] == 0:
-                        return best_actions
+                    best_actions, best_score = candidate, candidate_score
         return best_actions
 
     ranked = sorted(
@@ -173,11 +148,9 @@ def liquidity_cost_optimizer(
         key=lambda invoice: financing_terms(invoice, scenario, "TReDS")[1]
         / max(invoice.amount, 1.0),
     )
-    actions = _wait_actions(invoices)
     gap = _expected_gap(invoices, obligations, scenario)
     covered = 0.0
-    action_by_id = {a.invoice_id: a for a in actions}
-
+    action_by_id = {action.invoice_id: action for action in _wait_actions(invoices)}
     for invoice in ranked:
         financed_amount, _ = financing_terms(invoice, scenario, "TReDS")
         action_by_id[invoice.invoice_id] = ActionDecision(
@@ -188,7 +161,6 @@ def liquidity_cost_optimizer(
         covered += financed_amount
         if covered >= gap:
             break
-
     return [action_by_id[invoice.invoice_id] for invoice in invoices]
 
 
