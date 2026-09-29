@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate repository structure
+        shell: bash
+        run: |
+          test -f README.md
+          test -f docs/architecture.md
+          test -f docs/project-roadmap.md
+          test -f research/problem-statement.md
+          test -f research/existing-solutions.md
+          test -f research/research-log.md
+          echo "Repository structure OK"
