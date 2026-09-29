@@ -2,6 +2,39 @@
 
 ## Financial Forecast Reliability & Stress Testing Engine
 
+> **Note:** The original CashFlow-QA hypothesis is retained as research history. The active project direction is now the MSME Receivables Decision Lab described below.
+
+## Current project direction — 2026-09-29
+
+The original **Financial Forecast Reliability & Stress Testing** thesis has been superseded by research.
+
+### Current research project
+
+**MSME Receivables Decision Lab**
+
+The project studies the Indian MSME delayed-payment problem and builds an open, reproducible simulator for comparing:
+
+- waiting for payment;
+- collection/follow-up actions;
+- TReDS financing; and
+- alternative working-capital financing
+
+against future cash requirements and a minimum liquidity buffer.
+
+This is **not** a new TReDS marketplace, lender, invoice-financing platform, or generic working-capital optimizer. Existing commercial products already cover substantial parts of those categories.
+
+The research goal is to measure which decision policy actually reduces liquidity shortfalls and financing cost under realistic payment-delay uncertainty.
+
+See:
+
+- [Final research conclusion](research/final-research-conclusion-2026-09-29.md)
+- [Deep research on the three candidate gaps](research/deep-dive-narrow-msme-gaps-2026-09-29.md)
+- [Financing decision market scan](research/financing-decision-market-scan-2026-09-29.md)
+- [MSME delayed-payment problem statement](research/problem-statement.md)
+
+---
+
+
 CashFlow QA is an open-source finance analytics project designed to answer a question that ordinary cash-flow dashboards do not answer well:
 
 > **Can a business trust its cash-flow forecast, why might the forecast be wrong, and what happens when realistic financial risks occur?**
@@ -268,9 +301,9 @@ No private company data will be required for the public reference implementation
 
 ## Project status
 
-**Current stage: Research / architecture definition**
+**Current stage: Research decision complete — prototype experiment pending**
 
-No performance claims have been made yet.
+The active direction is the **MSME Receivables Decision Lab**. No performance claims have been made yet.
 
 Metrics, model selection, benchmark datasets and final product scope will be established through experiments and documented in this repository.
 
