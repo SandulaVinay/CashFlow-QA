@@ -1,0 +1,35 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.DS_Store
+Thumbs.db
+
+# Local data / secrets
+/data/raw/
+/data/private/
+*.db
+*.sqlite
+*.sqlite3
+*.parquet
+
+# Model artifacts
+/models/
+*.pkl
+*.joblib
+
+# Logs
+*.log
