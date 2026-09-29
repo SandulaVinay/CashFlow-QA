@@ -73,13 +73,59 @@ Various public tools provide TReDS eligibility and financing-cost calculators.
 
 Therefore the remaining gap is not basic financing calculation.
 
-## Gap hypothesis
+## New market-scan finding — 2026-09-29
 
-A possible gap is **portfolio-level, vendor-neutral financing choice optimization** across multiple funding alternatives and liquidity constraints.
+The broad hypothesis is **more crowded than originally expected**.
 
-This remains a hypothesis.
+Public product documentation shows strong overlap:
 
-We need to test whether existing enterprise treasury / supply-chain-finance products already provide this exact capability.
+- SAP Taulia: a working-capital agent that analyzes open AR/AP to recommend and execute cash-gap strategies.
+- Kyriba: funder-agnostic receivables finance plus multiple financing structures and AI-based payment prediction.
+- Clear: treasury, TReDS and bank/NBFC financing options through one invoice-discounting platform, including dynamic bidding.
+- CashFlo: multi-TReDS, bank and NBFC financing connectivity and cash-flow optimization.
+- C2FO: supplier choice of individual invoices and early-payment rates.
+- OpenMax: AI working-capital optimization, AR prioritization, cash-flow impact modeling and liquidity/credit optimization.
+- CrediOpt: India/MSME-focused receivables monitoring, buyer-payment intelligence, financing access and collection prioritization.
+
+Research note: research/financing-decision-market-scan-2026-09-29.md
+
+## Revised gap hypothesis
+
+Do NOT claim:
+
+> No existing application provides portfolio-level vendor-neutral receivables financing optimization.
+
+The evidence does not support that claim.
+
+A narrower research direction may still be viable:
+
+**An open, reproducible, India-specific decision layer for MSMEs that combines:**
+
+1. invoice/payment-history data;
+2. uncertain expected collection timing;
+3. a future cash requirement profile;
+4. a minimum liquidity constraint;
+5. financing offers/rates supplied from multiple sources;
+6. subset selection of receivables to finance rather than financing everything;
+7. explicit comparison of follow up vs wait vs finance;
+8. explainable reasons for invoice selection/rejection; and
+9. reproducible benchmarking of the resulting financial decision.
+
+A second possible direction is **small-invoice portfolio aggregation / prioritization**, motivated by reporting that lower-value invoices may attract less financing interest on TReDS.
+
+Both remain hypotheses.
+
+## Technical research questions
+
+- Can invoice-level cash-flow timing be predicted well enough to optimize financing?
+- How should financing cost be annualized and compared across different instruments?
+- How should a minimum liquidity floor be represented?
+- Can an optimization algorithm select a subset of invoices rather than financing everything?
+- How should uncertainty in payment dates affect the decision?
+- Can the system explain why it chose invoice A instead of invoice B?
+- Can small invoices be aggregated or prioritized in a way that improves practical financing access?
+- Can a benchmark dataset reproduce the decision and its financial outcome?
+- Can the decision engine remain useful when financing offers are unavailable and only cash/collection actions are possible?
 
 ## Technical research questions
 
@@ -114,8 +160,13 @@ Technical depth: HIGH
 
 Finance relevance: VERY HIGH
 
-Existing software overlap: HIGH
+Existing software overlap: VERY HIGH
 
-Unverified gap: Portfolio-level vendor-neutral funding optimization
+Original broad gap: NOT VALIDATED
 
-Status: RESEARCH ONLY
+Potential narrower gaps:
+- small-invoice portfolio aggregation / prioritization;
+- financing-vs-collection-vs-wait optimization under a minimum-cash constraint;
+- independent India-specific decision benchmarking across financing options.
+
+Status: RESEARCH CONTINUES — DO NOT IMPLEMENT YET
