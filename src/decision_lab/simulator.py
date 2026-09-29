@@ -30,18 +30,35 @@ def financing_terms(
     source: str,
 ) -> tuple[float, float]:
     offer = offer_for_source(scenario, source)
-    expected_days = max(1, round(
-        max(0, (invoice.due_date - scenario.as_of_date).days)
-        + invoice.historical_avg_delay_days
-        + scenario.payment_delay_shock_days
-    ))
-
-    financed_amount = invoice.amount * offer.advance_rate
+    expected_days = max(
+        1,
+        round(
+            max(0, (invoice.due_date - scenario.as_of_date).days)
+            + invoice.historical_avg_delay_days
+            + scenario.payment_delay_shock_days
+        ),
+    )
+    financed_amount = min(invoice.amount * offer.advance_rate, offer.max_amount)
     haircut = invoice.amount - financed_amount
     interest = financed_amount * offer.annual_rate * expected_days / 365.0
     fees = invoice.amount * offer.fee_rate
     total_cost = haircut + interest + fees
     return financed_amount, total_cost
+
+
+def build_realized_payment_days(
+    invoices: list[Invoice],
+    scenario: Scenario,
+) -> dict[str, int]:
+    """Create one common payment-timing realization for all policies."""
+    realized: dict[str, int] = {}
+    for invoice in invoices:
+        stable_offset = sum(ord(char) for char in invoice.invoice_id)
+        invoice_rng = random.Random(scenario.seed + stable_offset)
+        realized[invoice.invoice_id] = realized_payment_day(
+            invoice, scenario, invoice_rng, follow_up=False
+        )
+    return realized
 
 
 def simulate(
@@ -50,14 +67,10 @@ def simulate(
     scenario: Scenario,
     actions: list[ActionDecision],
     policy_name: str,
-    rng: random.Random | None = None,
+    payment_days: dict[str, int] | None = None,
 ) -> SimulationResult:
-    """Run one deterministic counterfactual.
-
-    The caller should use the same RNG seed for competing policies so each
-    policy experiences the same underlying payment-delay realization.
-    """
-    rng = rng or random.Random(scenario.seed)
+    """Run one deterministic counterfactual using fixed payment realizations."""
+    payment_days = payment_days or build_realized_payment_days(invoices, scenario)
     action_map = {a.invoice_id: a for a in actions}
 
     collections: dict[int, float] = defaultdict(float)
@@ -100,25 +113,15 @@ def simulate(
             financed_count += 1
             continue
 
-        delay_rng = rng
-        payment_day = realized_payment_day(
-            invoice,
-            scenario,
-            delay_rng,
-            follow_up=action.action == "FOLLOW_UP",
-        )
-        collections[payment_day] += invoice.amount
-
+        base_payment_day = payment_days[invoice.invoice_id]
         if action.action == "FOLLOW_UP":
-            baseline_day = realized_payment_day(
-                invoice,
-                scenario,
-                random.Random(scenario.seed + sum(ord(c) for c in invoice.invoice_id)),
-                follow_up=False,
-            )
-            if payment_day < baseline_day:
+            payment_day = max(0, base_payment_day - scenario.follow_up_acceleration_days)
+            if payment_day < base_payment_day:
                 accelerated += invoice.amount
                 follow_up_count += 1
+        else:
+            payment_day = base_payment_day
+        collections[payment_day] += invoice.amount
 
     cash = scenario.opening_cash
     points: list[DailyCashPoint] = []
@@ -141,8 +144,10 @@ def simulate(
             )
         )
 
-    balances = [p.closing_cash for p in points]
-    shortfall_days = sum(1 for value in balances if value < scenario.minimum_cash_buffer)
+    balances = [point.closing_cash for point in points]
+    shortfall_days = sum(
+        1 for value in balances if value < scenario.minimum_cash_buffer
+    )
 
     metrics = SimulationMetrics(
         minimum_cash=min(balances),
