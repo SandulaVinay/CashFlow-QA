@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import random
-
 from .models import Invoice, Obligation, Scenario, SimulationResult
 from .policies import POLICIES
-from .simulator import simulate
+from .simulator import build_realized_payment_days, simulate
 
 
 def compare_policies(
@@ -14,12 +12,12 @@ def compare_policies(
     policy_names: list[str] | None = None,
 ) -> list[SimulationResult]:
     names = policy_names or list(POLICIES.keys())
+    common_payment_days = build_realized_payment_days(invoices, scenario)
     results: list[SimulationResult] = []
 
     for name in names:
         if name not in POLICIES:
             raise ValueError(f"Unknown policy: {name}")
-
         actions = POLICIES[name](invoices, obligations, scenario)
         results.append(
             simulate(
@@ -28,8 +26,7 @@ def compare_policies(
                 scenario,
                 actions,
                 policy_name=name,
-                rng=random.Random(scenario.seed),
+                payment_days=common_payment_days,
             )
         )
-
     return results
