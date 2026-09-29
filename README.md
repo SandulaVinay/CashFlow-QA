@@ -12,7 +12,7 @@ The original **Financial Forecast Reliability & Stress Testing** thesis has been
 
 **MSME Receivables Decision Lab**
 
-The project studies the Indian MSME delayed-payment problem and builds an open, reproducible simulator for comparing:
+The active MVP is a research-grade simulator for comparing receivables actions under future cash-flow constraints:
 
 - waiting for payment;
 - collection/follow-up actions;
@@ -24,6 +24,12 @@ against future cash requirements and a minimum liquidity buffer.
 This is **not** a new TReDS marketplace, lender, invoice-financing platform, or generic working-capital optimizer. Existing commercial products already cover substantial parts of those categories.
 
 The research goal is to measure which decision policy actually reduces liquidity shortfalls and financing cost under realistic payment-delay uncertainty.
+
+Design and implementation references:
+
+- [Product design](docs/product-design.md)
+- [System architecture](docs/architecture.md)
+- [Project roadmap](docs/project-roadmap.md)
 
 See:
 

@@ -13,13 +13,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install project
+        run: pip install -e .
+
+      - name: Run tests
+        run: pytest -q
+
       - name: Validate repository structure
         shell: bash
         run: |
           test -f README.md
           test -f docs/architecture.md
           test -f docs/project-roadmap.md
+          test -f docs/product-design.md
           test -f research/problem-statement.md
           test -f research/existing-solutions.md
           test -f research/research-log.md
+          test -f research/final-research-conclusion-2026-09-29.md
           echo "Repository structure OK"

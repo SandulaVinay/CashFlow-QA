@@ -1,58 +1,88 @@
-# Project Roadmap
+# Project Roadmap — MSME Receivables Decision Lab
 
-## Phase 0 — Research
+## Phase 0 — Research ✅
 
-- Identify the exact problem statement.
-- Review open-source implementations.
-- Review academic research.
-- Review commercial products.
-- Document the gap hypothesis.
+- Problem definition
+- Existing market scan
+- Commercial/open-source research
+- Gap validation
+- Final project direction
 
-## Phase 1 — Data foundation
+## Phase 1 — Product design ✅
 
-- Define canonical schema.
-- Build ingestion pipeline.
-- Build validation checks.
-- Create reproducible synthetic/reference data.
+- User journey
+- Domain model
+- Simulation model
+- Policy definitions
+- UI information architecture
+- MVP success criteria
 
-## Phase 2 — Forecasting baseline
+## Phase 2 — MVP simulation engine 🔄
 
-- Implement transparent baseline methods.
-- Build time-aware backtesting.
-- Define metrics.
-- Produce first reliability report.
+- Canonical Python models
+- Synthetic dataset generator
+- Daily cash simulator
+- Payment-delay baseline
+- Four benchmark policies
+- First liquidity-cost optimizer
+- Metrics
+- Automated tests
+- Reproducible experiment
 
-## Phase 3 — Advanced forecasting
+### Exit gate
 
-- Add candidate ML methods.
-- Compare against baselines.
-- Evaluate model stability.
-- Measure forecast bias.
+The optimizer must be benchmarked against simple baselines. If it does not produce a measurable advantage on realistic scenarios, revise or stop the optimization hypothesis.
 
-## Phase 4 — Stress testing
+## Phase 3 — API + web prototype
 
-- Define financial shock library.
-- Recalculate cash-flow outcomes.
-- Produce scenario reports.
+- FastAPI
+- Scenario API
+- React + Tailwind UI
+- Receivables table
+- Cash calendar
+- Policy comparison
+- Evidence view
 
-## Phase 5 — Decision intelligence
+## Phase 4 — Realistic datasets
 
-- Identify cash-flow drivers.
-- Evaluate measurable response scenarios.
-- Add recommendation explanations.
+- Public/reference data investigation
+- Import contract
+- Synthetic-data calibration
+- Historical backtesting design
+- Scenario library
 
-## Phase 6 — AI explanation layer
+## Phase 5 — Advanced payment timing
 
-- Ask natural-language questions over verified results.
-- Add citations / traceability to underlying metrics.
-- Test hallucination resistance.
+Only after baseline experiments: survival analysis, quantile/interval predictions, ML models, uncertainty calibration.
 
-## Phase 7 — Production hardening
+## Phase 6 — Advanced decision research
 
-- Docker.
-- Automated tests.
-- CI/CD.
-- Security review.
-- Observability.
-- Documentation.
-- Reproducibility test by an independent user.
+- optimization formulation
+- sensitivity analysis
+- portfolio constraints
+- financing-source comparisons
+- small-invoice aggregation as a scenario
+
+## Phase 7 — AI explanation
+
+- grounded explanation over verified outputs
+- natural-language query
+- traceability
+- hallucination tests
+
+## Phase 8 — Production hardening
+
+- Docker Compose
+- CI/CD
+- security
+- observability
+- reproducibility test from clean environment
+- documentation
+- release
+
+## Phase 9 — Research communication
+
+- GitHub case study
+- benchmark results
+- LinkedIn build-in-public posts
+- final technical write-up
