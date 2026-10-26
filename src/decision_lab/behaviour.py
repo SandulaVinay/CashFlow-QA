@@ -2,16 +2,33 @@ from __future__ import annotations
 
 import random
 from datetime import date
+from math import erf, exp, pi, sqrt
 
 from .models import Invoice, Scenario
 
 
 def expected_payment_day(invoice: Invoice, scenario: Scenario) -> int:
-    """Expected collection day relative to the scenario start."""
+    """Expected collection day relative to the scenario start.
+
+    The synthetic realization first samples whether an invoice is late, then
+    draws a normally distributed delay for late invoices and clips negative
+    delays to zero. Use the late rate times the clipped-normal expected delay
+    so the policy schedule follows the same lateness rule. The continuous
+    clipped-normal mean approximates the rounded draw; payment days are
+    rounded to whole days.
+    """
     days_to_due = max(0, (invoice.due_date - scenario.as_of_date).days)
-    return min(
-        scenario.horizon_days,
-        days_to_due + round(invoice.historical_avg_delay_days) + scenario.payment_delay_shock_days,
+    mean = invoice.historical_avg_delay_days
+    sigma = max(invoice.historical_delay_std_days, 1.0)
+    z = mean / sigma
+    normal_cdf = 0.5 * (1.0 + erf(z / sqrt(2.0)))
+    normal_pdf = exp(-0.5 * z * z) / sqrt(2.0 * pi)
+    expected_delay_if_late = max(0.0, sigma * normal_pdf + mean * normal_cdf)
+    expected_delay = invoice.historical_late_rate * expected_delay_if_late
+    return (
+        days_to_due
+        + round(expected_delay)
+        + scenario.payment_delay_shock_days
     )
 
 
@@ -51,4 +68,4 @@ def realized_payment_day(
     if follow_up:
         delay = max(0, delay - scenario.follow_up_acceleration_days)
 
-    return min(scenario.horizon_days, days_to_due + delay)
+    return days_to_due + delay
