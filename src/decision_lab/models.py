@@ -41,7 +41,7 @@ class Scenario(BaseModel):
     minimum_cash_buffer: float = Field(ge=0)
     horizon_days: int = Field(default=91, ge=1, le=365)
     follow_up_acceleration_days: int = Field(default=10, ge=0)
-    payment_delay_shock_days: int = 0
+    payment_delay_shock_days: int = Field(default=0, ge=0)
     seed: int = 42
     financing_offers: list[FinancingOffer]
 
@@ -57,6 +57,7 @@ class DailyCashPoint(BaseModel):
     date: date
     opening_cash: float
     collections: float
+    residual_release: float
     financing_inflow: float
     obligations: float
     financing_cost: float
@@ -68,8 +69,12 @@ class SimulationMetrics(BaseModel):
     maximum_cash: float
     ending_cash: float
     cash_shortfall_days: int
+    cash_shortfall_amount_days: float
     financing_cost: float
+    financing_interest: float
+    financing_fees: float
     financed_amount: float
+    residual_receivable: float
     accelerated_receivables: float
     financed_invoice_count: int
     follow_up_invoice_count: int
