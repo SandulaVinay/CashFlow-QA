@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
 import sys
+from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -15,7 +17,28 @@ def main() -> None:
     invoices, obligations, scenario = generate_demo(seed=42)
     results = compare_policies(invoices, obligations, scenario)
 
+    try:
+        commit_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+        working_tree_dirty = bool(
+            subprocess.check_output(
+                ["git", "status", "--porcelain"], cwd=ROOT, text=True
+            ).strip()
+        )
+    except (OSError, subprocess.CalledProcessError):
+        commit_sha = None
+        working_tree_dirty = None
+
     report = {
+        "experiment_id": "mvp-baseline-seed-42",
+        "commit_sha": commit_sha,
+        "working_tree_dirty": working_tree_dirty,
+        "dataset_version": "synthetic-demo-v1",
+        "scenario_count": 1,
+        "seed": scenario.seed,
+        "policy_version": "mvp-v2",
+        "model_version": "heuristic-payment-timing-v2",
         "scenario": scenario.model_dump(),
         "results": [
             {
@@ -30,7 +53,11 @@ def main() -> None:
     output_dir = ROOT / "reports"
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / "mvp-baseline.json"
-    output_file.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+    if output_file.exists():
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        output_file = output_dir / f"mvp-baseline-{timestamp}.json"
+    with output_file.open("x", encoding="utf-8") as handle:
+        handle.write(json.dumps(report, indent=2, default=str))
 
     print("MSME Receivables Decision Lab — MVP")
     print("=" * 50)
