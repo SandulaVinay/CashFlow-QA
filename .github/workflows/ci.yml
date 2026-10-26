@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install project
-        run: pip install -e .
+        run: pip install -e ".[test]"
 
       - name: Run tests
         run: pytest -q
