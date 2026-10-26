@@ -1,0 +1,30 @@
+{
+  "dataset_id": "rolling-backtest-test",
+  "contract_version": "1",
+  "currency": "INR",
+  "timezone": "Asia/Kolkata",
+  "source_data_complete_through": "2026-06-30T23:59:59+05:30",
+  "invoices": [
+    {"invoice_id":"OLD-A1","version":1,"buyer_id":"BUYER-A","invoice_date":"2026-01-01","due_date":"2026-01-10","amount":100,"recorded_at":"2026-01-01T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"OLD-A2","version":1,"buyer_id":"BUYER-A","invoice_date":"2026-02-01","due_date":"2026-02-10","amount":100,"recorded_at":"2026-02-01T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"OLD-B1","version":1,"buyer_id":"BUYER-B","invoice_date":"2026-03-01","due_date":"2026-03-10","amount":100,"recorded_at":"2026-03-01T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"TEST-A","version":1,"buyer_id":"BUYER-A","invoice_date":"2026-04-01","due_date":"2026-04-20","amount":100,"recorded_at":"2026-04-01T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"TEST-A","version":2,"buyer_id":"BUYER-A","invoice_date":"2026-04-01","due_date":"2026-04-25","amount":100,"recorded_at":"2026-04-18T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"CENSORED-B","version":1,"buyer_id":"BUYER-B","invoice_date":"2026-04-01","due_date":"2026-04-10","amount":100,"recorded_at":"2026-04-01T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"LATE-REC-A","version":1,"buyer_id":"BUYER-A","invoice_date":"2026-04-01","due_date":"2026-04-12","amount":100,"recorded_at":"2026-04-01T10:00:00+05:30","eligible_for_treds":false},
+    {"invoice_id":"NOT-YET-RECORDED","version":1,"buyer_id":"BUYER-C","invoice_date":"2026-04-20","due_date":"2026-05-10","amount":100,"recorded_at":"2026-04-20T10:00:00+05:30","eligible_for_treds":false}
+  ],
+  "payments": [
+    {"payment_id":"P-OLD-A1","invoice_id":"OLD-A1","payment_at":"2026-01-15T10:00:00+05:30","recorded_at":"2026-01-15T10:05:00+05:30","amount":100},
+    {"payment_id":"P-OLD-A2","invoice_id":"OLD-A2","payment_at":"2026-02-25T10:00:00+05:30","recorded_at":"2026-02-25T10:05:00+05:30","amount":100},
+    {"payment_id":"P-OLD-B1","invoice_id":"OLD-B1","payment_at":"2026-03-10T10:00:00+05:30","recorded_at":"2026-03-10T10:05:00+05:30","amount":100},
+    {"payment_id":"P-TEST-A","invoice_id":"TEST-A","payment_at":"2026-04-30T10:00:00+05:30","recorded_at":"2026-04-30T11:00:00+05:30","amount":100},
+    {"payment_id":"P-LATE-REC-A","invoice_id":"LATE-REC-A","payment_at":"2026-04-14T10:00:00+05:30","recorded_at":"2026-04-30T11:00:00+05:30","amount":100}
+  ],
+  "obligations": [],
+  "cash_balances": [
+    {"snapshot_id":"CASH-KNOWN","as_of_at":"2026-04-14T18:00:00+05:30","recorded_at":"2026-04-14T18:05:00+05:30","balance":750000},
+    {"snapshot_id":"CASH-RECORDED-LATE","as_of_at":"2026-04-15T17:00:00+05:30","recorded_at":"2026-04-16T10:00:00+05:30","balance":700000}
+  ],
+  "financing_offers": []
+}
