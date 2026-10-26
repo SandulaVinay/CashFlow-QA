@@ -58,7 +58,7 @@ def generate_demo(seed: int = 42) -> tuple[list[Invoice], list[Obligation], Scen
         FinancingOffer(
             source="TReDS",
             annual_rate=0.12,
-            fee_rate=0.001,
+            fee_rate=0.0,
             advance_rate=0.98,
             max_amount=10_000_000,
         ),
@@ -82,4 +82,78 @@ def generate_demo(seed: int = 42) -> tuple[list[Invoice], list[Obligation], Scen
         financing_offers=offers,
     )
 
+    return invoices, obligations, scenario
+
+
+def generate_benchmark_case(
+    seed: int,
+) -> tuple[list[Invoice], list[Obligation], Scenario]:
+    """Generate one reproducible synthetic case for controlled policy tests."""
+    rng = random.Random(seed)
+    as_of = date(2026, 10, 1)
+    buyer_count = rng.randint(2, 6)
+    buyers = {
+        f"BUYER-{index + 1:02d}": (
+            rng.uniform(0.05, 0.95),
+            rng.uniform(0.0, 45.0),
+            rng.uniform(1.0, 24.0),
+        )
+        for index in range(buyer_count)
+    }
+
+    invoices: list[Invoice] = []
+    for index in range(rng.randint(3, 16)):
+        buyer_id = rng.choice(list(buyers))
+        late_rate, avg_delay, delay_std = buyers[buyer_id]
+        invoices.append(
+            Invoice(
+                invoice_id=f"S{seed}-INV-{index + 1:02d}",
+                buyer_id=buyer_id,
+                invoice_date=as_of - timedelta(days=rng.randint(5, 90)),
+                due_date=as_of + timedelta(days=rng.randint(-5, 80)),
+                amount=float(rng.randint(50_000, 1_500_000)),
+                historical_avg_delay_days=round(avg_delay, 2),
+                historical_delay_std_days=round(delay_std, 2),
+                historical_late_rate=round(late_rate, 3),
+                eligible_for_treds=rng.random() >= 0.1,
+            )
+        )
+
+    categories = ["Supplier", "Payroll", "Tax", "Rent", "Loan/EMI"]
+    obligations = [
+        Obligation(
+            date=as_of + timedelta(days=rng.randint(0, 91)),
+            category=rng.choice(categories),
+            amount=float(rng.randint(50_000, 700_000)),
+        )
+        for _ in range(rng.randint(4, 12))
+    ]
+
+    offers = [
+        FinancingOffer(
+            source="TReDS",
+            annual_rate=round(rng.uniform(0.08, 0.24), 4),
+            fee_rate=0.0,
+            advance_rate=round(rng.uniform(0.9, 1.0), 4),
+            max_amount=float(rng.randint(500_000, 3_000_000)),
+        ),
+        FinancingOffer(
+            source="OD",
+            annual_rate=round(rng.uniform(0.1, 0.3), 4),
+            fee_rate=0.0,
+            advance_rate=1.0,
+            max_amount=float(rng.randint(500_000, 3_000_000)),
+        ),
+    ]
+    opening_cash = float(rng.randint(200_000, 5_000_000))
+    scenario = Scenario(
+        as_of_date=as_of,
+        opening_cash=opening_cash,
+        minimum_cash_buffer=round(opening_cash * rng.uniform(0.2, 0.8), 2),
+        horizon_days=91,
+        follow_up_acceleration_days=rng.choice([0, 3, 7, 10, 14]),
+        payment_delay_shock_days=rng.choice([0, 7, 15, 30]),
+        seed=seed,
+        financing_offers=offers,
+    )
     return invoices, obligations, scenario
