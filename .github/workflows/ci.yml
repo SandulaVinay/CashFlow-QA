@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "feat/**"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "feat/**"]
 
 jobs:
   validate:
@@ -31,6 +31,7 @@ jobs:
           test -f docs/architecture.md
           test -f docs/project-roadmap.md
           test -f docs/product-design.md
+          test -f docs/calculation-validation-report.md
           test -f research/problem-statement.md
           test -f research/existing-solutions.md
           test -f research/research-log.md
