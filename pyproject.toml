@@ -17,7 +17,7 @@ dependencies = [
 test = ["pytest>=8,<10"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
