@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main", "feat/**"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "feat/**"]
 
 jobs:
   validate:
@@ -31,6 +31,7 @@ jobs:
           test -f docs/architecture.md
           test -f docs/project-roadmap.md
           test -f docs/product-design.md
+          test -f docs/calculation-validation-report.md
           test -f docs/historical-data-contract.md
           test -f docs/public-invoice-data-experiment.md
           test -f experiments/train_payment_baseline.py
