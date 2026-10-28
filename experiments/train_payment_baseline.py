@@ -147,6 +147,9 @@ def read_invoice_csv(path: Path) -> list[dict]:
                 }
             )
 
+    if not records:
+        raise ValueError("CSV contains no invoice rows")
+
     # Stable sorting is important for reproducibility. Same-day rows do not
     # see one another in their history features.
     records.sort(key=lambda r: (r["invoice_date"], r["invoice_id"], r["row_number"]))
@@ -462,6 +465,8 @@ def classification_metrics(probabilities: list[float], targets: list[int]) -> di
 def build_report(records: list[dict], train_fraction: float = 0.8) -> tuple[dict, dict]:
     feature_records = add_as_of_features(records)
     labeled = [row for row in feature_records if row["settled_date"] is not None]
+    if not labeled:
+        raise ValueError("No settled invoices are available for supervised evaluation")
     train, test, split_date = chronological_split(labeled, train_fraction)
     if len({row["late"] for row in train}) < 2:
         raise ValueError("Training split must contain both on-time and late invoices")
@@ -647,7 +652,6 @@ def main() -> None:
         parser.error(f"CSV file not found: {args.data}")
     try:
         raw_records = read_invoice_csv(args.data)
-        records = add_as_of_features(raw_records)
         summary, model_artifact = build_report(raw_records, args.train_fraction)
     except (ValueError, OSError, KeyError) as exc:
         parser.error(str(exc))
@@ -671,12 +675,15 @@ def main() -> None:
     print(f"Train/test: {summary['split']['train_row_count']:,} / {summary['split']['test_row_count']:,}")
     print(f"Split date: {summary['split']['split_date']}")
     classification = summary["evaluation"]["classification"]
+    def display_metric(value):
+        return "n/a" if value is None else f"{value:.3f}"
+
     print(
         "Late classifier: "
-        f"ROC-AUC={classification['roc_auc']:.3f} "
-        f"AP={classification['average_precision']:.3f} "
-        f"Brier={classification['brier_score']:.3f} "
-        f"accuracy={classification['accuracy_at_0_5']:.3f}"
+        f"ROC-AUC={display_metric(classification['roc_auc'])} "
+        f"AP={display_metric(classification['average_precision'])} "
+        f"Brier={display_metric(classification['brier_score'])} "
+        f"accuracy={display_metric(classification['accuracy_at_0_5'])}"
     )
     regression = summary["evaluation"]["days_late_regression"]
     print(
