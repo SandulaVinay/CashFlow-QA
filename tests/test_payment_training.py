@@ -85,3 +85,25 @@ def test_post_outcome_columns_are_not_features(tmp_path):
     assert all("days_late" not in row["features_raw"] for row in features)
     assert all("settled_date" not in row["features_raw"] for row in features)
     assert all("disputed" not in row["features_raw"] for row in features)
+
+
+def test_target_is_derived_from_dates_not_precomputed_days_late(tmp_path):
+    source = tmp_path / "invoice-history.csv"
+    write_synthetic_invoice_csv(source)
+    with source.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+        fieldnames = list(rows[0])
+    rows[0]["DaysLate"] = "999"
+    with source.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    records = read_invoice_csv(source)
+    assert records[0]["days_late"] == max(
+        0, (records[0]["settled_date"] - records[0]["due_date"]).days
+    )
+    assert records[0]["raw_days_late"] == 999
+
+    summary, _ = build_report(records, train_fraction=0.8)
+    assert summary["dataset"]["source_days_late_mismatch_count"] == 1
