@@ -10,6 +10,10 @@ from experiments.train_payment_baseline import (
 )
 
 
+def format_us_date(value: date) -> str:
+    return f"{value.month}/{value.day}/{value.year}"
+
+
 def write_synthetic_invoice_csv(path, row_count: int = 40):
     headers = [
         "countryCode", "customerID", "PaperlessDate", "invoiceNumber",
@@ -28,13 +32,13 @@ def write_synthetic_invoice_csv(path, row_count: int = 40):
             writer.writerow({
                 "countryCode": ["391", "406", "770", "818"][index % 4],
                 "customerID": f"CUST-{index % 5}",
-                "PaperlessDate": issued.strftime("%-m/%-d/%Y"),
+                "PaperlessDate": format_us_date(issued),
                 "invoiceNumber": f"INV-{index:04d}",
-                "InvoiceDate": issued.strftime("%-m/%-d/%Y"),
-                "DueDate": due.strftime("%-m/%-d/%Y"),
+                "InvoiceDate": format_us_date(issued),
+                "DueDate": format_us_date(due),
                 "InvoiceAmount": f"{30 + (index % 9) * 12.5:.2f}",
                 "Disputed": "Yes" if index % 7 == 0 else "No",
-                "SettledDate": settled.strftime("%-m/%-d/%Y"),
+                "SettledDate": format_us_date(settled),
                 "PaperlessBill": "Electronic" if index % 2 else "Paper",
                 "DaysToSettle": (settled - issued).days,
                 "DaysLate": max(0, (settled - due).days),
