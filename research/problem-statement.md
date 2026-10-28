@@ -2,12 +2,12 @@
 
 ## Project direction
 
-**Current research focus: MSME Receivables & Financing Decision Intelligence**
+**Current project: MSME Receivables Decision Lab**
 
-Working titles:
+Research lineage / earlier working titles:
 
-- **MSME Financing Decision Intelligence**
-- **TReDS Decision Engine** (working name for the financing-decision layer)
+- MSME Financing Decision Intelligence
+- TReDS Decision Engine
 
 This project is focused on the **MSME delayed-payment problem** in India and on the decision layer around receivables, cash-flow impact and financing.
 
@@ -263,8 +263,8 @@ It is not intended to:
 
 ## Current status
 
-**Stage: Research / gap validation**
+**Stage: MVP simulation engine / benchmark prototype**
 
-The ₹8.1 lakh crore delayed-payment figure establishes the scale of the problem. TReDS establishes an important existing financing mechanism.
+The research phase established that TReDS, working-capital optimization and receivables-financing capabilities are already covered by commercial products. The active project therefore focuses on an open, reproducible **decision simulator and benchmark** rather than a new financing platform.
 
-Our current research task is to determine **what decision-intelligence layer can add measurable value around these existing mechanisms** and to prove that value with reproducible experiments before building the full application.
+The current implementation compares wait, collection/follow-up and financing policies against future cash requirements using synthetic, reproducible scenarios. No claims of commercial novelty or predictive accuracy are made yet.
