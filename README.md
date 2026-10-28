@@ -17,15 +17,15 @@ It models invoices, operating obligations, opening cash, a minimum cash buffer, 
 - Daily cash-flow simulator with financing advances, modeled interest/fees, reserve releases, and cash metrics.
 - Six comparison policies: wait, largest-first, earliest-due-first, highest-delay-risk-first, cash-threshold, and optimizer.
 - FastAPI health, demo-generation, and policy-comparison endpoints.
-- Reproducible benchmarks, failure-case analysis, objective sensitivity experiments, and automated regression tests.
-- A timestamp-aware historical-data contract with versioned invoices, payment event/record timestamps, obligation versions, cash-balance snapshots, and financing-offer history.
-- A rolling-origin payment-timing backtest that filters features by the recorded-at cutoff and reports censored and late-recorded outcomes separately.
+- Reproducible benchmarks, failure-case analysis, objective sensitivity experiments, and regression tests.
+- Timestamp-aware historical-data contract and rolling-origin payment-timing backtest.
+- A reproducible invoice-lateness classifier and days-late regressor using a chronological holdout.
 
-Expected payment timing now reflects the modeled late probability, and financing duration uses the same expected-day function. Cost-aware experiments expose a trade-off between financing cost and realized liquidity risk. All demo and benchmark scenarios are synthetic; they do not establish real-world performance.
+The first public invoice data experiment uses the educational IBM Finance Factoring late-payment history listing. It has 2,466 invoice rows, 100 anonymized customer IDs and settlement outcomes, but it has no open invoices, cash balances, partial-payment history, record-time timestamps, obligations or financing offers. Treat it as a learning benchmark only; the data's provenance and redistribution terms have not been independently verified. The raw file is not included in the repository. Details and exploratory metrics are in [Public Invoice Data Experiment](docs/public-invoice-data-experiment.md).
 
-The historical backtest validates payment timing only. Its first baseline uses fully settled historical invoices, so selection bias remains a limitation. It does not yet replay historical financing decisions or estimate counterfactual cash balances.
+The first exploratory classifier achieved ROC-AUC 0.854 on a chronological holdout; a days-late regressor achieved 2.19 days MAE versus a 2.29-day median baseline. These figures require reproduction from the exact downloaded CSV before publication and are not evidence of real-world generalization. The model excludes post-outcome columns and only uses prior invoices settled by each prediction date, but it assumes settlement information became observable on the settlement date because the source lacks recorded-at timestamps.
 
-There is no web UI, spreadsheet upload/import adapter, database, or live financing integration yet. The JSON historical-data contract and CLI exist, but source-specific CSV/Excel/database ingestion has not been implemented. `FOLLOW_UP` and `FINANCE_OTHER` are represented in the domain and simulator, but the registered policies do not currently produce them.
+The historical backtest validates payment timing only. It does not yet replay historical financing decisions or estimate counterfactual cash balances. The JSON contract and rolling-origin CLI exist, but source-specific CSV/Excel/database ingestion adapters, full cash-ledger reconciliation and production UI are still future work.
 
 ## Run the prototype
 
@@ -33,12 +33,18 @@ Install the project and test dependencies:
 
     python -m pip install -e ".[test]"
 
-Run the synthetic demo, benchmark, objective comparison, and tests:
+Run the synthetic demo, benchmark, objective comparison and tests:
 
     python experiments/run_mvp.py
     python experiments/run_benchmark.py --scenario-count 500 --seed 20260930
     python experiments/run_objective_comparison.py --scenario-count 500 --seed 20260930
     pytest -q
+
+Download the IBM Finance Factoring CSV from the [original Kaggle dataset page](https://www.kaggle.com/datasets/hhenry/finance-factoring-ibm-late-payment-histories), check its license/terms, and keep the raw file outside Git. Train the baseline and save a timestamped evaluation report plus model artifact:
+
+    python experiments/train_payment_baseline.py --data path/to/Finance-Factoring-IBM-Late-Payment-Histories.csv
+
+The script uses a chronological split and writes the source file's SHA-256 to the report for traceability. It deliberately excludes `SettledDate`, `DaysToSettle`, `DaysLate`, `Disputed`, `PaperlessDate`, and `PaperlessBill` from predictor features because they are outcomes or their historical availability cannot be established. More details: [Public Invoice Data Experiment](docs/public-invoice-data-experiment.md).
 
 Run a historical timing backtest against an approved JSON extract that follows [Historical Data Contract v1](docs/historical-data-contract.md):
 
@@ -69,13 +75,14 @@ The API does not accept file uploads. Its `/docs` page is generated API referenc
 - `src/decision_lab/policies.py` — baseline policies and liquidity-cost optimizer.
 - `src/decision_lab/simulator.py` — financing calculations and daily cash ledger.
 - `src/decision_lab/historical.py` — timestamp-aware historical data contract.
-- `src/decision_lab/rolling_backtest.py` — leakage-aware rolling-origin baseline.
+- `src/decision_lab/rolling_backtest.py` — leakage-aware rolling-origin backtest.
+- `experiments/train_payment_baseline.py` — chronological invoice-payment model training.
 - `experiments/run_historical_backtest.py` — historical backtest CLI.
 - `experiments/run_benchmark.py` — multi-scenario policy benchmark.
 - `experiments/run_objective_comparison.py` — cost-aware objective sensitivity.
 - `experiments/analyze_benchmark.py` — benchmark failure-case analysis.
-- `tests/test_simulator.py` and `tests/test_historical_backtest.py` — finance invariants, schema validation, and leakage regression tests.
-- `docs/` — architecture, product design, roadmap, calculation validation, and data contract.
+- `tests/test_simulator.py`, `tests/test_historical_backtest.py`, and `tests/test_payment_training.py` — finance, schema, leakage, and model-training tests.
+- `docs/` — architecture, product design, roadmap, calculation validation and data documentation.
 - `research/` — problem statement, market scan, and research conclusions.
 
 ## Project documentation
@@ -85,6 +92,7 @@ The API does not accept file uploads. Its `/docs` page is generated API referenc
 - [Project roadmap](docs/project-roadmap.md)
 - [Calculation validation and benchmark findings](docs/calculation-validation-report.md)
 - [Historical data contract and rolling backtest](docs/historical-data-contract.md)
+- [Public invoice dataset experiment and model metrics](docs/public-invoice-data-experiment.md)
 - [Research conclusion](research/final-research-conclusion-2026-09-29.md)
 - [Delayed-payment problem statement](research/problem-statement.md)
 
