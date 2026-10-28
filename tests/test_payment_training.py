@@ -55,6 +55,7 @@ def test_future_settlement_cannot_be_used_in_invoice_issue_history(tmp_path):
     # settlement is not available as history for the second invoice.
     assert records[0]["settled_date"] > records[1]["invoice_date"]
     assert features[1]["prior_invoice_count"] == 0
+    assert features[1]["global_prior_invoice_count"] == 0
     assert features[1]["prior_late_rate"] == 0.5
 
 
